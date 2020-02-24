@@ -3,13 +3,16 @@ from bs4 import BeautifulSoup
 import re
 from collections import defaultdict, deque
 import sys
+from nltk.stem import PorterStemmer
 		
 class IIMatrix:
 	def __init__(self):
 		self.threshold = 100
 		self.doc_id = 0 #which is counted
-		self.ii = dict() #{term:[num of docs, {docid:[tf, [[postion, characetristic],[position, charac],[position,characterist]], docid:tf, ...}], term:[....], ...}
+		self.ii = dict() #{term:[num of docs, {docid:[tf, [positions], {"header":freq, "strong":freq, "title":freq}],...}], term:[....],...}
 		self.file_name = 1
+		self.unique_docs = 0
+		self.port_stem = PorterStemmer()
 
 
 	def create_matrix(self, path):
@@ -22,7 +25,7 @@ class IIMatrix:
 					q.append(obj)
 				else:
 					if sys.getsizeof(self.ii) > 90000:
-						write_json()
+						self.write_json()
 
 					self.doc_id += 1
 					try:
@@ -38,10 +41,36 @@ class IIMatrix:
 
 	def write_json(self):
 		file = "jsonindex" + str(self.file_name)
+		print("Just wrote " + file)
 		self.file_name += 1
 		with open(file, 'w') as f:
 			json.dump(self.ii, f)
+		self.unique_docs += len(self.ii)
 		self.ii.clear()
+
+	'''
+	Need path of the files as another parameter
+	Perhaps we should write them all in a folder, easy to find?
+	Open one file
+	Keep opening the others until we go through it all
+	Delete the files that are finished
+	'''
+	def merge_json(self):
+		pass
+		'''
+		{term:[num of docs, {docid:[tf, [positions], {"header":freq, "strong":freq, "title":freq}],...}], term:[....],...}
+		for term in second:
+			if term in first:
+				#don't need to access excessive amount of times
+				temp1 = first[term]
+				temp2 = second[term]
+				temp1[0] += second[term][0] add num freq
+				temp1[1].update(f[1])
+				first[term] = temp1
+				delete the other term
+			else:
+				first[term] = second[term]
+		'''
 
 	def parse(self, soup):
 		text = soup.get_text()
@@ -51,7 +80,8 @@ class IIMatrix:
 		lst = text.lower().split()
 		for x in range(len(lst)):
 			word = lst[x]
-			if re.match(r"^[a-z0-9]+$", word): 
+			if re.match(r"^[a-z0-9]+$", word):
+				word = self.port_stem.stem(word)
 				if word in self.ii:
 					if self.doc_id not in self.ii[word][1]:
 						self.ii[word][1][self.doc_id] = [1, [x], {"header":0, "strong":0, "title":0}]
@@ -70,8 +100,8 @@ class IIMatrix:
 	def get_number_of_docs(self):
 		return self.doc_id
 
-	#def number_of_unique_words(self):
-	#	return len(self.ii)
+	def number_of_unique_words(self):
+		return self.unique_docs
 
 	def print_data_structure(self):
 		print(self.ii)
