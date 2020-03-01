@@ -4,6 +4,8 @@ import re
 from collections import defaultdict, deque
 import sys
 from nltk.stem import PorterStemmer
+import os
+from pathlib import Path
 		
 class IIMatrix:
 	def __init__(self):
@@ -13,6 +15,7 @@ class IIMatrix:
 		self.file_name = 1
 		self.unique_docs = 0
 		self.port_stem = PorterStemmer()
+		self.json_dir = "./JSON/"
 
 
 	def create_matrix(self, path):
@@ -25,6 +28,7 @@ class IIMatrix:
 				if obj.is_dir():
 					q.append(obj)
 				else:
+					
 					if sys.getsizeof(self.ii) > 9000000:
 						self.write_json()
 
@@ -40,15 +44,27 @@ class IIMatrix:
 					except PermissionError:
 						print("PermissionError")
 		self.write_json()
+		self.create_big_index()
 
 	def write_json(self):
 		file = "jsonindex" + str(self.file_name)
-		print("Just wrote " + file)
+		#print("Just wrote " + file)
 		self.file_name += 1
 		with open(file, 'w') as f:
 			json.dump(self.ii, f)
 		self.unique_docs += len(self.ii)
 		self.ii.clear()
+	
+	def create_big_index(self):
+		fn = "jsonBigIndex"
+		if not os.path.isdir(self.json_dir):
+			os.mkdir(self.json_dir)
+		filepath = os.path.join(self.json_dir, fn)
+		d = dict()
+		f = open(filepath, "w")
+		json.dump(d, f)
+		f.close()
+		return filepath
 
 	'''
 	Need path of the files as another parameter
@@ -57,22 +73,34 @@ class IIMatrix:
 	Keep opening the others until we go through it all
 	Delete the files that are finished
 	'''
-	def merge_json(self):
-		pass
-		'''
-		{term:[num of docs, {docid:[tf, [positions], {"header":freq, "strong":freq, "title":freq}],...}], term:[....],...}
-		for term in second:
-			if term in first:
-				#don't need to access excessive amount of times
-				temp1 = first[term]
-				temp2 = second[term]
-				temp1[0] += second[term][0] add num freq
-				temp1[1].update(f[1])
-				first[term] = temp1
-				delete the other term
-			else:
-				first[term] = second[term]
-		'''
+	def merge_json(self, fp):
+		#open the json file here
+		print(os.getcwd())
+		with open(fp, "r+") as f:
+			res = json.load(f)
+		
+		os.chdir(self.json_dir)
+		path = Path(os.getcwd())
+		print(path)
+		for j in path.iterdir():
+			print(j.name)
+			if j.name != "jsonBigIndex":
+				try:
+					with open(j) as json_file:
+						data = json.load(json_file)
+						for term in data.keys():
+							if term in res:
+								temp1 = res[term]
+								temp2 = data[term]
+								temp1[0] += temp2[0] #add num freq
+								temp1[1].update(temp2[1])
+							else:
+								res[term] = data[term]
+					with open ('jsonBigIndex', 'w') as f:
+						json.dump(res, f)
+					os.remove(j)
+				except PermissionError:
+					continue
 
 	def parse(self, soup):
 		text = soup.get_text()
