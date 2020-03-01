@@ -19,17 +19,19 @@ class IIMatrix:
 		q = deque()
 		q.append(path)
 		while len(q) != 0:
-			q.popleft()
-			for obj in path.iterdir():
+			curr_dir = q.popleft()
+			for obj in curr_dir.iterdir():
+				print("Checking " + str(obj))
 				if obj.is_dir():
 					q.append(obj)
 				else:
-					if sys.getsizeof(self.ii) > 90000:
+					if sys.getsizeof(self.ii) > 9000000:
 						self.write_json()
 
 					self.doc_id += 1
 					try:
 						with open(obj) as json_file:
+							
 							data = json.load(json_file)
 							content = data['content']
 							soup = BeautifulSoup(content, 'lxml')
