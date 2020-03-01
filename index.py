@@ -6,6 +6,28 @@ import sys
 from nltk.stem import PorterStemmer
 import os
 from pathlib import Path
+from math import log
+
+def compute_tfidf():
+	#count number of times doc id appears in dictionary
+	pass
+
+#{term:[num of docs, {docid:[#ofwords,tf, [positions], {"header":freq, "strong":freq, "title":freq}],...}], term:[....],...}
+def intersect(file, *ws):#
+	"""boolean search easy!"""
+	count = 0
+	port_stem = PorterStemmer()
+	str(count)
+	w1 = port_stem.stem(w1)
+	w2 = port_stem.stem(w2)
+	with open(file, "r") as f:
+		res = json.load(f)
+		total_docs = len(res[w1][1])
+
+
+	return res
+
+
 		
 class IIMatrix:
 	def __init__(self):
@@ -16,6 +38,7 @@ class IIMatrix:
 		self.unique_docs = 0
 		self.port_stem = PorterStemmer()
 		self.json_dir = "./JSON/"
+		self.json_big_index = os.path.join(self.json_dir, "jsonBigIndex")
 
 
 	def create_matrix(self, path):
@@ -56,15 +79,14 @@ class IIMatrix:
 		self.ii.clear()
 	
 	def create_big_index(self):
-		fn = "jsonBigIndex"
 		if not os.path.isdir(self.json_dir):
 			os.mkdir(self.json_dir)
-		filepath = os.path.join(self.json_dir, fn)
-		d = dict()
+		#filepath = os.path.join(self.json_dir, fn)
+		'''d = dict()
 		f = open(filepath, "w")
 		json.dump(d, f)
-		f.close()
-		return filepath
+		f.close()'''
+		return self.json_big_index
 
 	'''
 	Need path of the files as another parameter
@@ -125,7 +147,9 @@ class IIMatrix:
 				else: #not inside
 					inner_dict = {self.doc_id:[1, [x], {"header":0, "strong":0, "title":0}]}
 					self.ii.update({word:[1, inner_dict]})
-				
+
+	def get_big_index_path(self):
+		return self.json_big_index
 
 	def get_number_of_docs(self):
 		return self.doc_id

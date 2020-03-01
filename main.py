@@ -1,4 +1,5 @@
 from index import IIMatrix
+from index import intersect
 from pathlib import Path
 
 #PATH="C:\\Users\\polar\\GitRepos\\indexer\\developer\\DEV"
@@ -21,10 +22,11 @@ def main():
 	print("Matrix initialized")
 	#print(path_obj)
 	#iim.create_matrix(path_obj)
-	file = iim.create_big_index()
-	iim.merge_json(file)
+	#file = iim.create_big_index()
+	#iim.merge_json(file)
 	#print(iim.get_number_of_docs())
 	#print(iim.number_of_unique_words())
+	intersect(iim.get_big_index_path(), "artifical", "machine")
 	print("Done")
 
 if __name__=="__main__":
