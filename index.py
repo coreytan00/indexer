@@ -1,50 +1,31 @@
 import json
 from bs4 import BeautifulSoup
 import re
-from collections import defaultdict, deque
+from collections import deque
 import sys
 from nltk.stem import PorterStemmer
 import os
 from pathlib import Path
 from math import log
 
-
+def compute_tfidf():
 	#count number of times doc id appears in dictionary
 	pass
 
 #{term:[num of docs, {docid:[#ofwords,tf, [positions], {"header":freq, "strong":freq, "title":freq}],...}], term:[....],...}
 def intersect(file, *ws):#
 	"""boolean search easy!"""
-	"""not finished"""
-	def compute_tfidf(w1, w2):
-		w1docs = [d for d in res[w1][1].keys()]
-		w2docs = [d for d in res[w2][1].keys()] # redundant. optimize later
-		c1, c2 = 0, 0
-		doc_lst = []
-		while True:
-			try:
-				ptr1 = int(w1docs[c1])
-				ptr2 = int(w2docs[c2])
-				if ptr1 < ptr2:
-					c1 +=1
-				elif ptr1 > ptr2:
-					c2 +=1
-				else: #both found in same doc
-					doc_lst.append(ptr1) #add one -- doesn't matter
- 			except IndexError:
-				break
-		return doc_lst
-
-	ws = [port_stem.stem(word) for word in ws]
+	count = 0
 	port_stem = PorterStemmer()
+	str(count)
+	w1 = port_stem.stem(w1)
+	w2 = port_stem.stem(w2)
 	with open(file, "r") as f:
 		res = json.load(f)
-		#total_docs = len(res[w1][1])
-		res_lst = []
-		for i in range(len(ws)-1):
-			compute_tfidf(ws[i], ws[i+1])
+		total_docs = len(res[w1][1])
 
-	return 
+
+	return res
 
 
 		
@@ -52,15 +33,27 @@ class IIMatrix:
 	def __init__(self):
 		self.threshold = 100
 		self.doc_id = 0 #which is counted
-		self.ii = dict() #{term:[num of docs, {docid:[tf, [positions], {"header":freq, "strong":freq, "title":freq}],...}], term:[....],...}
+		'''
+		{term:{docid:[[position,header|strong|title],[2,0]], docid:[[3,0],[4,0]]}, term:...}
+		tf - #of terms in document/# of words in document
+			dict(doc_id:#of words in doc)
+			at writing to txt file, we compute value
+		idf - log(# of total documents/# of docs with term)
+			at the end, we compute
+		numOfAppear = len()
+		term;docid:numOfAppear,tf,positions (split by hyphen or something), header|strong|title;docid
+		'''
+		self.ii = dict()
 		self.file_name = 1
-		self.unique_docs = 0
+		self.unique_words = 0
+		self.total_num_words = dict()
 		self.port_stem = PorterStemmer()
-		self.json_dir = "./JSON/"
-		self.json_big_index = os.path.join(self.json_dir, "jsonBigIndex")
+		self.index_dir = "./Index/"
+		self.big_index = os.path.join(self.index_dir, "BigIndex")
 
 
 	def create_matrix(self, path):
+		self.create_big_index()
 		q = deque()
 		q.append(path)
 		while len(q) != 0:
@@ -71,65 +64,77 @@ class IIMatrix:
 					q.append(obj)
 				else:
 					
-					if sys.getsizeof(self.ii) > 9000000:
-						self.write_json()
+					if sys.getsizeof(self.ii) > 10000000: #10 MB
+						self.write_text()
 
-					self.doc_id += 1
+					
 					try:
 						with open(obj) as json_file:
 							
 							data = json.load(json_file)
 							content = data['content']
 							soup = BeautifulSoup(content, 'lxml')
+							self.doc_id += 1
 							self.parse(soup)
 
 					except PermissionError:
 						print("PermissionError")
-		self.write_json()
-		self.create_big_index()
+		self.write_text()
+		self.merge_index()
 
-	def write_json(self):
-		file = "jsonindex" + str(self.file_name)
-		#print("Just wrote " + file)
+	'''
+	Change from write_json to write_text
+	1. Loop through sorted(self.ii)
+	2. Create txt file called index + self.file_name
+	3. Increment self.file_name
+	4. Open file, write into file line by line
+	5. For each entry
+	6. term ; docid : numOfAppear,tf,positions (split by hyphen or something), header|strong|title;docid
+	'''
+	def write_text(self):
+		file = "index" + str(self.file_name)
 		self.file_name += 1
 		with open(file, 'w') as f:
-			json.dump(self.ii, f)
-		self.unique_docs += len(self.ii)
+			for term,docs in sorted(self.ii.items()):
+				string = term + ';'
+				for docID,pos in sorted(docs.items()):
+					p = str(pos)
+					string += docID + ':' + p[1:len(p)-1] + ';'
+			string.rstrip(';')
+			string += '\n'
+			f.write(string)
+		self.unique_words += len(self.ii)
 		self.ii.clear()
 	
 	def create_big_index(self):
-		if not os.path.isdir(self.json_dir):
-			os.mkdir(self.json_dir)
-		#filepath = os.path.join(self.json_dir, fn)
-		'''d = dict()
-		f = open(filepath, "w")
-		json.dump(d, f)
-		f.close()'''
-		return self.json_big_index
+		if not os.path.isdir(self.index_dir):
+			os.mkdir(self.index_dir)
+		f = open('BigIndex','w')
+		f.close()
+		return self.big_index
 
-	'''
-	Need path of the files as another parameter
-	Perhaps we should write them all in a folder, easy to find?
-	Open one file
-	Keep opening the others until we go through it all
-	Delete the files that are finished
-	'''
-	def merge_json(self, fp):
+
+	def merge_index(self):
 		#open the json file here
 		print(os.getcwd())
-		with open(fp, "r+") as f:
-			res = json.load(f)
-		
-		os.chdir(self.json_dir)
-		path = Path(os.getcwd())
-		print(path)
-		for j in path.iterdir():
-			print(j.name)
-			if j.name != "jsonBigIndex":
-				try:
-					with open(j) as json_file:
-						data = json.load(json_file)
-						for term in data.keys():
+		os.chdir(self.index_dir)
+		with open("BigIndex", "r+") as big:
+			path = Path(os.getcwd())
+			print(path)
+			for j in path.iterdir():
+				if j.name != "BigIndex":
+					try:
+						for line in open(j):
+							big.write(line)
+							
+
+							line = line.rstrip('\n').split(';')
+							#total num of documents is len(line)-1
+							term = line[0]
+
+
+
+
 							if term in res:
 								temp1 = res[term]
 								temp2 = data[term]
@@ -145,27 +150,29 @@ class IIMatrix:
 
 	def parse(self, soup):
 		text = soup.get_text()
+		lst = text.lower().split()
+		self.total_num_words[self.doc_id] = len(lst)
+
 		header_lst = soup.find_all(re.compile(r"^h[1-6]$"))
 		strong_lst = soup.find_all(re.compile(r"^strong$"))
 		title_lst = soup.find_all(re.compile(r"^title$"))
-		lst = text.lower().split()
+		
 		for x in range(len(lst)):
 			word = lst[x]
-			if re.match(r"^[a-z0-9]+$", word):
+			if word.isalnum():
 				word = self.port_stem.stem(word)
+				"""
+				create dictionary of doc ids with values of word counts
+				update at the very end.
+				{term:{docid:[[1,2],[2,0]], docid:[[3,0],[4,0]]}, term:...}
+				"""
 				if word in self.ii:
-					if self.doc_id not in self.ii[word][1]:
-						self.ii[word][1][self.doc_id] = [1, [x], {"header":0, "strong":0, "title":0}]
-						self.ii[word][1][self.doc_id][2]["header"] = header_lst.count(word)
-						self.ii[word][1][self.doc_id][2]["strong"] = strong_lst.count(word)
-						self.ii[word][1][self.doc_id][2]["title"] = title_lst.count(word)
+					if self.doc_id not in self.ii[word]:
+						self.ii[word][self.doc_id] = [x]
 					else:
-						self.ii[word][1][self.doc_id][0] +=1
-						self.ii[word][1][self.doc_id][1].append(x)
-					self.ii[word][0] = len(self.ii[word][1])
+						self.ii[word][self.doc_id].append(x)
 				else: #not inside
-					inner_dict = {self.doc_id:[1, [x], {"header":0, "strong":0, "title":0}]}
-					self.ii.update({word:[1, inner_dict]})
+					self.ii.update({word:{self.doc_id:[x]}})
 
 	def get_big_index_path(self):
 		return self.json_big_index
@@ -174,7 +181,7 @@ class IIMatrix:
 		return self.doc_id
 
 	def number_of_unique_words(self):
-		return self.unique_docs
+		return self.unique_words
 
 	def print_data_structure(self):
 		print(self.ii)
