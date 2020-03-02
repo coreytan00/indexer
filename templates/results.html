@@ -1,0 +1,19 @@
+{% extends "layout.html" %} 
+{% block body %}
+<div class="container">
+  <div class="card text-center border-0 my-5 shadow-lg">
+      <div class="mt-5 card-body p-5">
+      <div class="col text-center justify-content-center align-self-center">
+      <h1 class="mb-5">Results</h1>
+      <div>
+        <ul>
+        {% for word in lst %}
+        <li>{{word}}</li>
+        {% endfor %}
+        </ul>
+      </div>
+      </div>
+      </div>
+  </div>
+</div>
+{% endblock body %}

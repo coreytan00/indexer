@@ -8,24 +8,43 @@ import os
 from pathlib import Path
 from math import log
 
-def compute_tfidf():
+
 	#count number of times doc id appears in dictionary
 	pass
 
 #{term:[num of docs, {docid:[#ofwords,tf, [positions], {"header":freq, "strong":freq, "title":freq}],...}], term:[....],...}
 def intersect(file, *ws):#
 	"""boolean search easy!"""
-	count = 0
+	"""not finished"""
+	def compute_tfidf(w1, w2):
+		w1docs = [d for d in res[w1][1].keys()]
+		w2docs = [d for d in res[w2][1].keys()] # redundant. optimize later
+		c1, c2 = 0, 0
+		doc_lst = []
+		while True:
+			try:
+				ptr1 = int(w1docs[c1])
+				ptr2 = int(w2docs[c2])
+				if ptr1 < ptr2:
+					c1 +=1
+				elif ptr1 > ptr2:
+					c2 +=1
+				else: #both found in same doc
+					doc_lst.append(ptr1) #add one -- doesn't matter
+ 			except IndexError:
+				break
+		return doc_lst
+
+	ws = [port_stem.stem(word) for word in ws]
 	port_stem = PorterStemmer()
-	str(count)
-	w1 = port_stem.stem(w1)
-	w2 = port_stem.stem(w2)
 	with open(file, "r") as f:
 		res = json.load(f)
-		total_docs = len(res[w1][1])
+		#total_docs = len(res[w1][1])
+		res_lst = []
+		for i in range(len(ws)-1):
+			compute_tfidf(ws[i], ws[i+1])
 
-
-	return res
+	return 
 
 
 		
