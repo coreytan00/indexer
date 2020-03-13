@@ -82,7 +82,7 @@ print(counter([20, 30, 33, 8233, 8234]))
 print(counter([16479, 16507, 16985, 16986, 16988]))'''
 
 #print(counter([49968,19345,19419,16467,12547,25756,33529]))
-
+'''
 print('Enter query: cristina lopes')
 print('Results')
 print('-> http://sdcl.ics.uci.edu/author/andre/page/2/')
@@ -90,4 +90,11 @@ print('-> http://sdcl.ics.uci.edu/category/news/page/2/')
 print('-> http://sdcl.ics.uci.edu/page/3/')
 print('-> https://www.cs.uci.edu/events-page/computer-science-seminar-series/')
 print('-> https://www.ics.uci.edu/community/news/notes/notes_2011.php')
-input('Enter query: ')
+input('Enter query: ')'''
+
+def told(f):
+    with open(f, 'r+') as a:
+        print(a.readline())
+
+told('f.txt')
+        

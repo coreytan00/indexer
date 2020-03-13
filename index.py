@@ -12,7 +12,6 @@ def compute_tfidf():
 	#count number of times doc id appears in dictionary
 	pass
 
-#{term:[num of docs, {docid:[#ofwords,tf, [positions], {"header":freq, "strong":freq, "title":freq}],...}], term:[....],...}
 def intersect(file, *ws):#
 	"""boolean search easy!"""
 	count = 0
@@ -63,11 +62,8 @@ class IIMatrix:
 				if obj.is_dir():
 					q.append(obj)
 				else:
-					
 					if sys.getsizeof(self.ii) > 10000000: #10 MB
 						self.write_text()
-
-					
 					try:
 						with open(obj) as json_file:
 							
@@ -98,8 +94,8 @@ class IIMatrix:
 			for term,docs in sorted(self.ii.items()):
 				string = term + ';'
 				for docID,pos in sorted(docs.items()):
-					p = str(pos)
-					string += docID + ':' + p[1:len(p)-1] + ';'
+					p = str(pos[0])
+					string += docID + ':' + p[1:len(p)-1] + '|' + str(pos[1]) + ';'
 			string.rstrip(';')
 			string += '\n'
 			f.write(string)
@@ -127,7 +123,6 @@ class IIMatrix:
 						for line in open(j):
 							big.write(line)
 							
-
 							line = line.rstrip('\n').split(';')
 							#total num of documents is len(line)-1
 							term = line[0]
@@ -157,6 +152,43 @@ class IIMatrix:
 		strong_lst = soup.find_all(re.compile(r"^strong$"))
 		title_lst = soup.find_all(re.compile(r"^title$"))
 		
+		#Add .3 for header words
+		for x in range(len(header_lst)):
+			if x.isalnum():
+				if word in self.ii:
+					if self.doc_id not in self.ii[word]:
+						self.ii[word][self.doc_id] = [[x],.3]
+					else:
+						self.ii[word][self.doc_id][0].append(x)
+						self.ii[word][self.doc_id][1] += .3
+				else:
+					self.ii.update({word:{self.doc_id:[[x],.3]}})
+
+		#Add .4 for bolds/strong
+		for x in range(len(strong_lst)):
+			if x.isalnum():
+				if word in self.ii:
+					if self.doc_id not in self.ii[word]:
+						self.ii[word][self.doc_id] = [[x],.4]
+					else:
+						self.ii[word][self.doc_id][0].append(x)
+						self.ii[word][self.doc_id][1] += .4
+				else:
+					self.ii.update({word:{self.doc_id:[[x],.4]}})
+		
+		#Add .5 for title
+		for x in range(len(title_lst)):
+			if x.isalnum():
+				if word in self.ii:
+					if self.doc_id not in self.ii[word]:
+						self.ii[word][self.doc_id] = [[x],.5]
+					else:
+						self.ii[word][self.doc_id][0].append(x)
+						self.ii[word][self.doc_id][1] += .5
+				else:
+					self.ii.update({word:{self.doc_id:[[x],.5]}})
+
+		#Create the postings for the words in each document
 		for x in range(len(lst)):
 			word = lst[x]
 			if word.isalnum():
@@ -168,11 +200,11 @@ class IIMatrix:
 				"""
 				if word in self.ii:
 					if self.doc_id not in self.ii[word]:
-						self.ii[word][self.doc_id] = [x]
+						self.ii[word][self.doc_id] = [[x],0]
 					else:
-						self.ii[word][self.doc_id].append(x)
+						self.ii[word][self.doc_id][0].append(x)
 				else: #not inside
-					self.ii.update({word:{self.doc_id:[x]}})
+					self.ii.update({word:{self.doc_id:[[x],0]}})
 
 	def get_big_index_path(self):
 		return self.json_big_index
