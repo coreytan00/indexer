@@ -1,12 +1,5 @@
-Temporary Fried Chicken;
-Moldy Bread
-Souperior Serpentine Sourdough 
-Singles
-
-se:2
-throw:4
-
-Moldy Bread
-Singles
-Souperior Serpentine Sourdough 
-Temporary Fried Chicken;
+00000000;37072:3133,3753:0;
+00000000;47838:3133,3753:0;
+0000110;38635:2928:0;
+00000000;37072:3133,3753:0;47838:3133,3753:0;
+0000110;38635:2928:0;

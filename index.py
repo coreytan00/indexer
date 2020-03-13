@@ -52,8 +52,7 @@ class IIMatrix:
 
 
 	def create_matrix(self, path):
-		self.create_big_index()
-		q = deque()
+		'''q = deque()
 		q.append(path)
 		while len(q) != 0:
 			curr_dir = q.popleft()
@@ -82,7 +81,7 @@ class IIMatrix:
 					except Exception as e:
 						continue
 		self.write_text()
-		self.write_total_num_words()
+		self.write_total_num_words()'''
 		self.merge_index()
 
 	'''
@@ -114,10 +113,9 @@ class IIMatrix:
 		self.ii.clear()
 
 	def write_total_num_words(self):
-		f = open('TotalNumWords','w')
-		for key,value in self.total_num_words.items():
-            big.write(str(key)+':'+str(value)+'\n')
-		f.close()
+		with open('TotalNumWords','w') as big:
+			for key,value in self.total_num_words.items():
+				big.write(str(key)+':'+str(value)+'\n')
 	
 	'''def create_big_index(self):
 		f = open('BigIndex','w')
@@ -146,30 +144,27 @@ class IIMatrix:
 			big.seek(0)
 			s = big.readlines()
 			s = sorted(s)
-		with open("index1","w") as big:
-			big.writelines(s)
-			#Perhaps can delete below
-			'''while line:
-				term = line.rstrip('\n').split(';')[0]
-				term2 = current.rstrip('\n').split(';')[0]
-				if (term < term2):
-					big.seek(prev_tracker)
-					big.write(line+current)
-				elif term > term2:
-					#move on
-					prev_tracker += big.tell()
-					current = big.readline()
-				else: #same term
-					length = len(current)
-					newLine = current[0:length-2] + line[2:]
-					big.seek(prev_tracker)
-					big.write(newLine)'''
-			#Honestly don't know what this bottom part is
-			'''line = line.rstrip('\n').split(';')
-			#total num of documents is len(line)-1
-			term = line[0]'''
-	#except PermissionError:
-		#continue
+		#with open("index1","w") as big:
+			#ig.writelines(s)
+		with open('index1', 'w') as big:
+			tracker = set()
+			overwrite = []
+			for i in range(len(s)):
+				first = s[i].split(';')
+				temp = first[0] + ';' + first[1]
+				if first[0] not in tracker:
+					for j in range(i+1,len(s)):
+						second = s[j].split(';')
+						if first[0] == second[0]:
+							temp += ';' + second[1]
+						else:
+							break
+					tracker.add(first[0])
+					temp += ';\n'
+					overwrite.append(temp)                 
+			big.writelines(overwrite)
+			
+
 
 	def parse(self, soup):
 		text = soup.get_text()

@@ -93,16 +93,38 @@ print('-> https://www.ics.uci.edu/community/news/notes/notes_2011.php')
 input('Enter query: ')'''
 
 def told(f):
-    current = "tomato sauce"
-    x = {'se':2, 'throw':4}
+    '''n = []
     with open(f,'r+') as big:
         term = big.readlines()
         term = sorted(term)
-        for key,value in x.items():
-            big.write(key+':'+str(value)+'\n')
+        for i in range(len(term)):
+            term[i] = term[i].split(';')
+        st = term[0][0]+';'+term[0][1] + ';' + term[1][1] + ';'
+        print(term)
+        big.write(st)'''
+        #for key,value in x.items():
+            #big.write(key+':'+str(value)+'\n')
         
-    with open(f,'a') as big:
-        big.writelines(term)
+    #with open(f,'a') as big:
+        #big.writelines(term)
+    with open(f, 'r+') as big:
+        s = big.readlines()
+        tracker = set()
+        overwrite = []
+        for i in range(len(s)):
+            first = s[i].split(';')
+            temp = first[0] + ';' + first[1]
+            if first[0] not in tracker:
+                for j in range(i+1,len(s)):
+                    second = s[j].split(';')
+                    if first[0] == second[0]:
+                        temp += ';' + second[1]
+                    else:
+                        break
+                tracker.add(first[0])
+                temp += ';\n'
+                overwrite.append(temp)                 
+        big.writelines(overwrite)
 
 told('f.txt')
         
