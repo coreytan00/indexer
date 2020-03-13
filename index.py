@@ -62,7 +62,7 @@ class IIMatrix:
 				if obj.is_dir():
 					q.append(obj)
 				else:
-					if sys.getsizeof(self.ii) > 10000000: #10 MB
+					if sys.getsizeof(self.ii) > 1000000: #10 MB #0
 						self.write_text()
 					try:
 						with open(obj) as json_file:
@@ -74,9 +74,15 @@ class IIMatrix:
 							self.parse(soup)
 
 					except PermissionError:
-						print("PermissionError")
+						continue
+						#print("PermissionError")
+					except ValueError:
+						continue
+						#print("ValueError")
+					except Exception as e:
+						continue
 		self.write_text()
-		self.merge_index()
+		#self.merge_index()
 
 	'''
 	Change from write_json to write_text
@@ -92,13 +98,17 @@ class IIMatrix:
 		self.file_name += 1
 		with open(file, 'w') as f:
 			for term,docs in sorted(self.ii.items()):
-				string = term + ';'
+				string = '{};'.format(term)
 				for docID,pos in sorted(docs.items()):
-					p = str(pos[0])
-					string += docID + ':' + p[1:len(p)-1] + '|' + str(pos[1]) + ';'
-			string.rstrip(';')
-			string += '\n'
-			f.write(string)
+					p = pos[0]
+					p = ",".join(str(a) for a in p)
+					string += '{}:{}|{};'.format(str(docID), p, str(pos[1]))
+				string.rstrip(';')
+				string += '\n'
+				try:
+					f.write(string)
+				except:
+					continue
 		self.unique_words += len(self.ii)
 		self.ii.clear()
 	
@@ -111,100 +121,96 @@ class IIMatrix:
 
 
 	def merge_index(self):
-		#open the json file here
-		print(os.getcwd())
-		os.chdir(self.index_dir)
-		with open("BigIndex", "r+") as big:
-			path = Path(os.getcwd())
-			print(path)
-			for j in path.iterdir():
-				if j.name != "BigIndex":
+		#open the Big Text File
+		#Open Two Index Files
+		#Readline each index file
+		#Compare each readline
+		#Write into the big text file
+		#If there is a duplicate
+		#Write one of them in and write the otehr the end of the line
+		#Once one is finished reading, end it
+		'''print(os.getcwd()) 
+		os.chdir(self.index_dir)'''
+		with open("index1", "r+") as big:
+			prev_tracker = 0 #current line number of "big"
+			current = big.readline()
+			for i in range(self.file_name):
+				fn = "index{}".format(i+1)
+				if j.name != "index1":
 					try:
-						for line in open(j):
+						for line in open(fn):
+							term = line.rstrip('\n').split(';')[0]
+							term2 = current.rstrip('\n').split(';')[0]
+							if (term < term2) 
+								if (tracker==0):
+									big.seek(0).write(line+current)
+								else:
+									
+							elif term > term2:
+								#move on
+								ln += 1
+								current = big.readline()
+							else: #same term
+								increase number of documents
+						
 							big.write(line)
 							
 							line = line.rstrip('\n').split(';')
 							#total num of documents is len(line)-1
 							term = line[0]
 
-
-
-
-							if term in res:
-								temp1 = res[term]
-								temp2 = data[term]
-								temp1[0] += temp2[0] #add num freq
-								temp1[1].update(temp2[1])
-							else:
-								res[term] = data[term]
-					with open ('jsonBigIndex', 'w') as f:
-						json.dump(res, f)
-					os.remove(j)
-				except PermissionError:
-					continue
+					except PermissionError:
+						continue
 
 	def parse(self, soup):
 		text = soup.get_text()
 		lst = text.lower().split()
 		self.total_num_words[self.doc_id] = len(lst)
 
+		#Add .3 for header
+		#Add .4 for bolds/strong
+		#Add .5 for title
 		header_lst = soup.find_all(re.compile(r"^h[1-6]$"))
 		strong_lst = soup.find_all(re.compile(r"^strong$"))
 		title_lst = soup.find_all(re.compile(r"^title$"))
 		
-		#Add .3 for header words
-		for x in range(len(header_lst)):
-			if x.isalnum():
-				if word in self.ii:
-					if self.doc_id not in self.ii[word]:
-						self.ii[word][self.doc_id] = [[x],.3]
-					else:
-						self.ii[word][self.doc_id][0].append(x)
-						self.ii[word][self.doc_id][1] += .3
-				else:
-					self.ii.update({word:{self.doc_id:[[x],.3]}})
-
-		#Add .4 for bolds/strong
-		for x in range(len(strong_lst)):
-			if x.isalnum():
-				if word in self.ii:
-					if self.doc_id not in self.ii[word]:
-						self.ii[word][self.doc_id] = [[x],.4]
-					else:
-						self.ii[word][self.doc_id][0].append(x)
-						self.ii[word][self.doc_id][1] += .4
-				else:
-					self.ii.update({word:{self.doc_id:[[x],.4]}})
+		header_lst = (" ".join(str(w)[4:len(w)-6].lower() for w in header_lst)).split()
+		strong_lst = (" ".join(str(w)[9:len(w)-11].lower() for w in strong_lst)).split()
+		title_lst =  (" ".join(str(w)[7:len(w)-9].lower() for w in title_lst)).split()
 		
-		#Add .5 for title
-		for x in range(len(title_lst)):
-			if x.isalnum():
-				if word in self.ii:
-					if self.doc_id not in self.ii[word]:
-						self.ii[word][self.doc_id] = [[x],.5]
-					else:
-						self.ii[word][self.doc_id][0].append(x)
-						self.ii[word][self.doc_id][1] += .5
-				else:
-					self.ii.update({word:{self.doc_id:[[x],.5]}})
-
-		#Create the postings for the words in each document
+		self.check_parse(lst, header_lst, strong_lst, title_lst)
+	
+	def check_parse(self, lst, header_lst, strong_lst, title_lst):
 		for x in range(len(lst)):
-			word = lst[x]
+			word = str(lst[x])
+			#print("WORD:", word)
 			if word.isalnum():
 				word = self.port_stem.stem(word)
-				"""
-				create dictionary of doc ids with values of word counts
-				update at the very end.
-				{term:{docid:[[1,2],[2,0]], docid:[[3,0],[4,0]]}, term:...}
-				"""
 				if word in self.ii:
 					if self.doc_id not in self.ii[word]:
 						self.ii[word][self.doc_id] = [[x],0]
 					else:
 						self.ii[word][self.doc_id][0].append(x)
-				else: #not inside
+				else:
 					self.ii.update({word:{self.doc_id:[[x],0]}})
+				try:
+					t = header_lst.index(word)
+					header_lst.pop(t)
+					self.ii[word][self.doc_id][1] += .3
+				except:
+					continue
+				try:
+					t = strong_lst.index(word)
+					strong_lst.pop(t)
+					self.ii[word][self.doc_id][1] += .4
+				except:
+					continue
+				try:
+					t = title_lst.index(word)
+					title_lst.pop(t)
+					self.ii[word][self.doc_id][1] += .5
+				except:
+					continue
 
 	def get_big_index_path(self):
 		return self.json_big_index

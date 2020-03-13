@@ -93,8 +93,15 @@ print('-> https://www.ics.uci.edu/community/news/notes/notes_2011.php')
 input('Enter query: ')'''
 
 def told(f):
-    with open(f, 'r+') as a:
-        print(a.readline())
+    with open(f) as big:
+        term = big.readline()
+        while term:
+            #term = term.rstrip('\n').split(';')[0]
+            tracker = big.tell()
+            print(term)
+            print(tracker)
+            term = big.readline()
+            
 
 told('f.txt')
         

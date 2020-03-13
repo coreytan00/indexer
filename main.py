@@ -21,12 +21,10 @@ def main():
 	iim = IIMatrix()
 	print("Matrix initialized")
 	#print(path_obj)
-	#iim.create_matrix(path_obj)
-	#file = iim.create_big_index()
-	#iim.merge_json(file)
+	iim.create_matrix(path_obj)
 	#print(iim.get_number_of_docs())
 	#print(iim.number_of_unique_words())
-	intersect(iim.get_big_index_path(), "artifical", "machine")
+	#intersect(iim.get_big_index_path(), "artifical", "machine")
 	print("Done")
 
 if __name__=="__main__":
