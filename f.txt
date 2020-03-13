@@ -1,4 +1,12 @@
-Temporary Fried Chicken
+Temporary Fried Chicken;
 Moldy Bread
 Souperior Serpentine Sourdough 
 Singles
+
+se:2
+throw:4
+
+Moldy Bread
+Singles
+Souperior Serpentine Sourdough 
+Temporary Fried Chicken;

@@ -93,15 +93,16 @@ print('-> https://www.ics.uci.edu/community/news/notes/notes_2011.php')
 input('Enter query: ')'''
 
 def told(f):
-    with open(f) as big:
-        term = big.readline()
-        while term:
-            #term = term.rstrip('\n').split(';')[0]
-            tracker = big.tell()
-            print(term)
-            print(tracker)
-            term = big.readline()
-            
+    current = "tomato sauce"
+    x = {'se':2, 'throw':4}
+    with open(f,'r+') as big:
+        term = big.readlines()
+        term = sorted(term)
+        for key,value in x.items():
+            big.write(key+':'+str(value)+'\n')
+        
+    with open(f,'a') as big:
+        big.writelines(term)
 
 told('f.txt')
         

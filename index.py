@@ -82,7 +82,8 @@ class IIMatrix:
 					except Exception as e:
 						continue
 		self.write_text()
-		#self.merge_index()
+		self.write_total_num_words()
+		self.merge_index()
 
 	'''
 	Change from write_json to write_text
@@ -102,7 +103,7 @@ class IIMatrix:
 				for docID,pos in sorted(docs.items()):
 					p = pos[0]
 					p = ",".join(str(a) for a in p)
-					string += '{}:{}|{};'.format(str(docID), p, str(pos[1]))
+					string += '{}:{}:{};'.format(str(docID), p, str(pos[1]))
 				string.rstrip(';')
 				string += '\n'
 				try:
@@ -111,56 +112,64 @@ class IIMatrix:
 					continue
 		self.unique_words += len(self.ii)
 		self.ii.clear()
+
+	def write_total_num_words(self):
+		f = open('TotalNumWords','w')
+		for key,value in self.total_num_words.items():
+            big.write(str(key)+':'+str(value)+'\n')
+		f.close()
 	
-	def create_big_index(self):
-		if not os.path.isdir(self.index_dir):
-			os.mkdir(self.index_dir)
+	'''def create_big_index(self):
 		f = open('BigIndex','w')
 		f.close()
-		return self.big_index
+		return self.big_index'''
 
 
 	def merge_index(self):
-		#open the Big Text File
-		#Open Two Index Files
-		#Readline each index file
-		#Compare each readline
-		#Write into the big text file
-		#If there is a duplicate
-		#Write one of them in and write the otehr the end of the line
-		#Once one is finished reading, end it
+		'''Dump all files together
+		Apply readlines and sorted function
+		Rewrite into file'''
 		'''print(os.getcwd()) 
 		os.chdir(self.index_dir)'''
 		with open("index1", "r+") as big:
-			prev_tracker = 0 #current line number of "big"
-			current = big.readline()
-			for i in range(self.file_name):
+			#print(os.getcwd())
+			for i in range(57):
 				fn = "index{}".format(i+1)
-				if j.name != "index1":
+				print(fn)
+				if fn != "index1":
 					try:
-						for line in open(fn):
-							term = line.rstrip('\n').split(';')[0]
-							term2 = current.rstrip('\n').split(';')[0]
-							if (term < term2) 
-								if (tracker==0):
-									big.seek(0).write(line+current)
-								else:
-									
-							elif term > term2:
-								#move on
-								ln += 1
-								current = big.readline()
-							else: #same term
-								increase number of documents
-						
+						with open(fn, 'r') as small:
+							line = small.read()
 							big.write(line)
-							
-							line = line.rstrip('\n').split(';')
-							#total num of documents is len(line)-1
-							term = line[0]
-
-					except PermissionError:
+					except:
 						continue
+			big.seek(0)
+			s = big.readlines()
+			s = sorted(s)
+		with open("index1","w") as big:
+			big.writelines(s)
+			#Perhaps can delete below
+			'''while line:
+				term = line.rstrip('\n').split(';')[0]
+				term2 = current.rstrip('\n').split(';')[0]
+				if (term < term2):
+					big.seek(prev_tracker)
+					big.write(line+current)
+				elif term > term2:
+					#move on
+					prev_tracker += big.tell()
+					current = big.readline()
+				else: #same term
+					length = len(current)
+					newLine = current[0:length-2] + line[2:]
+					big.seek(prev_tracker)
+					big.write(newLine)'''
+			#Honestly don't know what this bottom part is
+			'''line = line.rstrip('\n').split(';')
+			#total num of documents is len(line)-1
+			term = line[0]'''
+	#except PermissionError:
+		#continue
 
 	def parse(self, soup):
 		text = soup.get_text()
