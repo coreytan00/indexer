@@ -116,19 +116,12 @@ class IIMatrix:
 		with open('TotalNumWords','w') as big:
 			for key,value in self.total_num_words.items():
 				big.write(str(key)+':'+str(value)+'\n')
-	
-	'''def create_big_index(self):
-		f = open('BigIndex','w')
-		f.close()
-		return self.big_index'''
 
 
 	def merge_index(self):
 		'''Dump all files together
 		Apply readlines and sorted function
 		Rewrite into file'''
-		'''print(os.getcwd()) 
-		os.chdir(self.index_dir)'''
 		with open("index1", "r+") as big:
 			#print(os.getcwd())
 			for i in range(57):
@@ -144,8 +137,6 @@ class IIMatrix:
 			big.seek(0)
 			s = big.readlines()
 			s = sorted(s)
-		#with open("index1","w") as big:
-			#ig.writelines(s)
 		with open('index1', 'w') as big:
 			tracker = set()
 			overwrite = []

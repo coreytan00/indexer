@@ -3,6 +3,7 @@ from nltk.stem import PorterStemmer
 import os
 from collections import deque
 from pathlib import Path
+from math import log
 
 def intersect(file, *ws):
     def compute_tfidf(w1, w2):
@@ -93,38 +94,107 @@ print('-> https://www.ics.uci.edu/community/news/notes/notes_2011.php')
 input('Enter query: ')'''
 
 def told(f):
-    '''n = []
-    with open(f,'r+') as big:
-        term = big.readlines()
-        term = sorted(term)
-        for i in range(len(term)):
-            term[i] = term[i].split(';')
-        st = term[0][0]+';'+term[0][1] + ';' + term[1][1] + ';'
-        print(term)
-        big.write(st)'''
-        #for key,value in x.items():
-            #big.write(key+':'+str(value)+'\n')
-        
-    #with open(f,'a') as big:
-        #big.writelines(term)
-    with open(f, 'r+') as big:
-        s = big.readlines()
-        tracker = set()
-        overwrite = []
-        for i in range(len(s)):
-            first = s[i].split(';')
-            temp = first[0] + ';' + first[1]
-            if first[0] not in tracker:
-                for j in range(i+1,len(s)):
-                    second = s[j].split(';')
-                    if first[0] == second[0]:
-                        temp += ';' + second[1]
-                    else:
-                        break
-                tracker.add(first[0])
-                temp += ';\n'
-                overwrite.append(temp)                 
-        big.writelines(overwrite)
+    tk = open('TotalKeeper', 'r')
+    tnw = open('TotalNumWords', 'r')
+    overwrite = []
 
+    for line in open(f):
+        #Look at each posting
+        first = line.rstrip('\n').rstrip(';').split(';')
+        print("FIRST:", first)
+
+        #Calculate idf
+        idf = log(55393/(len(first)-1))
+        
+        #Look at each docID
+        for j in range(1,len(first)):
+            t_docs = 0 #t_docs is the total number of words in the document
+            inner = first[j].split(':')
+            print("OVER HERE", inner)
+            docID = int(inner[0])
+            print("INNER:", inner)
+
+            #Look in the bookkeping TotalKeeper for the the pointer
+            while (t_docs==0):
+                tk_line = tk.readline()
+                tk_line = tk_line.split(':')
+                placement_position = docID//500*500
+                print(tk_line)
+                print(placement_position)
+                print(tk_line[0], placement_position == int(tk_line[0]))
+                if placement_position == int(tk_line[0]) or placement_position == 1:
+                    position = int(tk_line[1])
+                    #Seek in the TotalNumWords, loop until you find the correct posting for it
+                    #Retrieve TotalNumWords to divide by
+                    #Store it
+                    for m in range(500):
+                        try:
+                            tnw.seek(position)
+                            tnw_line = tnw.readline()
+                            tnw_line = tnw_line.rstrip('\n').split(':')
+                            if docID == int(tnw_line[0]):
+                                t_docs = int(tnw_line[1])
+                                break
+                            position = tnw.tell()
+                        except IndexError:
+                            break
+                    tk.seek(0)
+                if placement_position >= 55000: #if at a docID that doesn't exist, however should not occur
+                    break
+
+            #Look at each Positional Argument (need for tf)
+            for k in range(1, len(inner)-1):
+                ner = inner[k].split(',')
+                print("NER:", ner)
+                tf_numerator = len(ner)+float(inner[len(inner)-1])
+                print("TF_NUM SCORE:", str(tf_numerator))             
+
+                #Calculate tf
+                print("TF_DEN SCORE:", str(t_docs))
+                tf_score = tf_numerator/t_docs
+                print("TF SCORE:", tf_score)
+        #first[0] + ';' + 
+        overwrite.append(first + ';' +)
+
+
+    tk.close()
+    tnw.close()
+
+def create_bookkeeper(f, name):
+    overwrite = []
+    pointer = 0
+    with open(f, 'r') as imp:
+        line = imp.readline()
+        c = line[0]
+        overwrite.append(str(c)+':'+str(pointer)+'\n')
+        while line:
+            if line[0] != c:
+                c = line[0]
+                overwrite.append(str(c)+':'+str(pointer)+'\n')
+            pointer = imp.tell()
+            line = imp.readline()
+    with open(name, 'w') as to_write:
+        to_write.writelines(overwrite)
+
+def total_bookkeeper(f, name):
+    overwrite = []
+    pointer = 0
+    with open(f, 'r') as imp:
+        line = imp.readline()
+        c = int(line[0])
+        overwrite.append(str(c)+':'+str(pointer)+'\n')
+        while line:
+            line = line.split(':')
+            c = int(line[0])
+            if c%500==0:
+                overwrite.append(str(c)+':'+str(pointer)+'\n')
+            pointer = imp.tell()
+            line = imp.readline()
+    with open(name, 'w') as to_write:
+        to_write.writelines(overwrite)
+    
+                
 told('f.txt')
+#create_bookkeeper('TotalNumWords','TotalKeeper')
+#total_bookkeeper('TotalNumWords','TotalKeeper')
         
